@@ -1,0 +1,18 @@
+LinWarrior: controls
+====================
+
+As the game's code maps them (upstream's README is older). The keyboard
+and the mouse stand in for a game pad; a pad works alongside them.
+
+  Arrow keys        throttle and steering
+  J I K L           turn and tilt the turret (or move the mouse)
+  R  G              fire (left mouse button fires too)
+  D  A              jump jets (right mouse button too)
+  E                 change the view: internal, external, far, front,
+                    satellite, satellite far (middle mouse button too)
+  F  S              next and previous target
+  Tab               the console, on and off
+  Esc               quit
+
+Start LinWarrior from a Shell with --help for its options: --resolution,
+--window, --mission, --lockmouse 0 to turn the mouse off.
