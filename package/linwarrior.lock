@@ -1,0 +1,15 @@
+# What package/build-amiga.sh fetches (none of it is kept in this repository).
+# Upstream LinWarrior 3D: Benjamin Pickhardt's (hackcraft.de) mech game and
+# framework, Apache-2.0; its data under the licences in data/*/COPYING
+# (the source licence, CC-BY 3.0, CC-BY-SA 3.0, CC0 1.0, Sampling Plus 1.0).
+# The last commit, on the way to r20 (unreleased).
+LW_URL=https://github.com/hackcraft-de/linwarrior
+LW_COMMIT=ddea6874cf3337ee3543bc2dc1a3f0ad3d9eaaef
+PORT_VERSION=0.20-gfos1
+# Expat, the XML reader LinWarrior's OpenMission uses: GFOpenXML's build of
+# it (DalsinAI/gfopenxml: its big-endian 68k expat_config.h), from the
+# Expat release GFOpenXML pins (MIT).
+GFOPENXML_URL=https://github.com/DalsinAI/gfopenxml
+GFOPENXML_COMMIT=2f687ecd99da570e7c9cb9fe3cfdabcae97e6cd1
+EXPAT_URL=https://github.com/libexpat/libexpat/releases/download/R_2_8_2/expat-2.8.2.tar.bz2
+EXPAT_SHA256=69e7f52417d85b1c2b7fe855e176eec55d0b2d7d92d691372d833a1c7df7923b

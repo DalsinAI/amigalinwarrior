@@ -1,0 +1,36 @@
+diff --git a/source/de/hackcraft/game/GameMain.cpp b/source/de/hackcraft/game/GameMain.cpp
+index b058284..8cd64a3 100644
+--- a/source/de/hackcraft/game/GameMain.cpp
++++ b/source/de/hackcraft/game/GameMain.cpp
+@@ -897,9 +897,9 @@ int GameMain::init(int argc, char** args) {
+     SDL_Surface* screen = NULL;
+     
+     if (config->fullscreen) {
+-        screen = SDL_SetVideoMode(config->width, config->height, 0, SDL_OPENGLBLIT | SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
++        screen = SDL_SetVideoMode(config->width, config->height, 0, SDL_OPENGL | SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
+     } else {
+-        screen = SDL_SetVideoMode(config->width, config->height, 0, SDL_OPENGLBLIT | SDL_HWSURFACE | SDL_DOUBLEBUF);
++        screen = SDL_SetVideoMode(config->width, config->height, 0, SDL_OPENGL | SDL_HWSURFACE | SDL_DOUBLEBUF);
+     }
+     
+     if (!screen) {
+diff --git a/source/de/hackcraft/io/Filesystem.cpp b/source/de/hackcraft/io/Filesystem.cpp
+index 0ac26d6..6bd875c 100644
+--- a/source/de/hackcraft/io/Filesystem.cpp
++++ b/source/de/hackcraft/io/Filesystem.cpp
+@@ -18,6 +18,7 @@ Filesystem::Filesystem() {
+     prefixes.push_back("ext");
+     prefixes.push_back("data");
+     
++#ifndef __amigaos__
+     // For common *nix installation game data directories.
+     prefixes.push_back("/usr/share/games/linwarrior/mod");
+     prefixes.push_back("/usr/share/games/linwarrior/ext");
+@@ -25,6 +26,7 @@ Filesystem::Filesystem() {
+     
+     // For absolute file references - sensible for development only.
+     prefixes.push_back("");
++#endif
+ }
+ 
+ 
