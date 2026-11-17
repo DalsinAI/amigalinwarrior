@@ -34,3 +34,27 @@ index 0ac26d6..6bd875c 100644
  }
  
  
+diff --git a/source/de/hackcraft/log/Appender.cpp b/source/de/hackcraft/log/Appender.cpp
+index 8dd11b7..09f73dc 100644
+--- a/source/de/hackcraft/log/Appender.cpp
++++ b/source/de/hackcraft/log/Appender.cpp
+@@ -3,6 +3,7 @@
+ #include "de/hackcraft/log/Logger.h"
+ 
+ #include <iostream>
++#include <ctime>
+ 
+ Appender::Appender() {
+     maxLevel = 2;
+diff --git a/source/de/hackcraft/psi3d/macros.h b/source/de/hackcraft/psi3d/macros.h
+index 213b20d..7cdb86f 100644
+--- a/source/de/hackcraft/psi3d/macros.h
++++ b/source/de/hackcraft/psi3d/macros.h
+@@ -16,6 +16,7 @@
+ // gcc supplies a NAN which is float but that may not be available everywhere.
+ // Division by zero may produce segfaults on non x86 architectures.
+ #include <math.h>
++#include <time.h>
+ #ifdef NAN
+ #define float_NAN  ((float)NAN)
+ #else
