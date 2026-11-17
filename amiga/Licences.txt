@@ -1,0 +1,32 @@
+LinWarrior: licences
+====================
+
+The game: LinWarrior 3D and the LinWarrior Framework, Copyright 1999-2012
+Benjamin Pickhardt (hackcraft.de), https://github.com/hackcraft-de/linwarrior
+
+- The program is under the Apache License 2.0 (LICENSE-Apache-2.0.txt);
+  NOTICE.txt is upstream's notice, which must stay with it.
+- The data (data/) is under the licences in each folder's COPYING file,
+  shipped with it:
+  - data/base: the same licence as the program (Apache-2.0);
+  - data/org/opengameart: the Scorpion and Thunderbird mechs by Skorpio
+    (CC-BY-SA 3.0), the Gausscan and Twinblaster turrets and the Reactor
+    by nazzyc (CC-BY 3.0);
+  - data/com/blendswap: F.L.O.P.S.Y by hjmediastudios (CC-BY-SA, with
+    hackcraft.de's changes);
+  - data/org/freesound: sounds by yewbic (CC0 1.0), wildweasel, smcameron
+    and PhreaKsAccount (CC-BY 3.0), Matt_G and ljudman (Sampling Plus 1.0,
+    which allows sharing the sounds unchanged for no money).
+  The Blender files of the models are left out of the drawer; the game
+  reads the .md5mesh files made from them. They are in upstream's
+  repository.
+- Expat, the XML reader, is Clark Cooper's and the Expat maintainers',
+  under the MIT licence (LICENSE-Expat.txt), built with GFOpenXML's 68k
+  configuration (https://github.com/DalsinAI/gfopenxml).
+- SDL and OpenGL are GFOpenUp's (LIBS:GFOpenGPU/).
+- The Amiga port's own files (amiga/, AMIGA_PORT.md, tests/) are under the
+  Apache License 2.0, like LinWarrior; tools/ and package/ are under the
+  MIT licence; the GlowIcon art is The AmiCradle Team's own. The OpenAL,
+  ALUT, GLEW and GLU calls in amiga/ are our own code, written from those
+  libraries' documented interfaces. The source of all of it is at
+  https://github.com/DalsinAI/amigalinwarrior.

@@ -1,0 +1,15 @@
+{
+  "name": "LinWarrior",
+  "version": "0.20-gfos1",
+  "drawer": "LinWarrior",
+  "program": "LinWarrior",
+  "cpu": "68040",
+  "fpu": true,
+  "space": 8000000,
+  "modules": ["SDL2.module", "GL.module"],
+  "libraries": [],
+  "keep": [],
+  "parent": "Work:Games",
+  "badge": "icons/art/linwarrior.png",
+  "script": "Install-LinWarrior"
+}

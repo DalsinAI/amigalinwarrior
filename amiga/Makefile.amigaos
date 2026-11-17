@@ -1,0 +1,101 @@
+# LinWarrior 3D for GFOS (AmigaOS 3.2 with GFOpenUp), 68040/68060 + FPU, on
+# GFOpenUp's SDL 1.2 (sdl12-compat on SDL2.module) and OpenGL (GL.module).
+# Sound: amiga/lw_al.c, the OpenAL and ALUT calls the game makes, on SDL
+# 1.2's audio; GLEW and GLU: amiga/include/GL. XML: Expat, with GFOpenXML's
+# 68k config.
+#
+#   make -f amiga/Makefile.amigaos -j4 LW=/path/to/linwarrior \
+#        EXPAT=/path/to/expat-2.8.2 EXPATCFG=/path/to/gfopenxml/config/expat \
+#        [STOVE=...]
+#
+# LW is upstream LinWarrior at the commit package/linwarrior.lock names, with
+# amiga/patches applied; package/build-amiga.sh fetches it and the rest.
+#
+# Output: build/amigaos/LinWarrior/ (the drawer: LinWarrior, data/, ReadMe,
+# Controls and the licences, with GlowIcons), build/amigaos/LinWarrior.info
+# and Install-LinWarrior beside them.
+
+LW        ?= ../linwarrior
+EXPAT     ?= ../expat
+EXPATCFG  ?= ../gfopenxml/config/expat
+STOVE     ?= $(HOME)/AmiCradle/stoves/os32-gcc16-open6
+PREFIX    ?= $(STOVE)/prefix
+SDLKIT    ?= $(PREFIX)/m68k-amigaos
+CC        = $(PREFIX)/bin/m68k-amigaos-gcc
+CXX       = $(PREFIX)/bin/m68k-amigaos-g++
+STRIP     = $(PREFIX)/bin/m68k-amigaos-strip
+# hard float: the game is float throughout, and the SDL and GL kits are -m68881
+CPU       ?= -m68040 -m68881
+# -fno-tree-loop-distribute-patterns: GCC 16's loop miscompile.
+# Upstream builds at -O1 and says fast-math breaks it (NaN tests).
+OPT       ?= -O2 -fomit-frame-pointer -fno-tree-loop-distribute-patterns
+
+DEFS      = -D__amigaos__
+# amiga/include first: its GL/ and AL/ stand in for GLEW, GLU and OpenAL
+INC       = -Iamiga/include -Iamiga -I$(LW)/source -I$(SDLKIT)/include -I$(EXPAT)/lib
+CXXFLAGS  = -noixemul $(OPT) $(CPU) -std=gnu++11 -w $(DEFS) $(INC)
+CFLAGS    = -noixemul $(OPT) $(CPU) -std=gnu99 -Wall $(DEFS) -Iamiga -Iamiga/include -I$(SDLKIT)/include
+XFLAGS    = -noixemul -O2 $(CPU) -fno-tree-loop-distribute-patterns -I$(EXPATCFG) -I$(EXPAT)/lib \
+            -DHAVE_EXPAT_CONFIG_H -D_DEFAULT_SOURCE=1
+LDFLAGS   = -noixemul $(CPU)
+# sdl12-compat's GL table first (-lSDL_gl before -lSDL), as sdl-config --gl does
+LIBS      = -L$(SDLKIT)/lib -Wl,-u,_SDL12Amiga_gl -lSDL_gl -lSDL -lSDL2 -lGL -lm -lstdc++ -lpthread
+
+BUILD     = build/amigaos
+OBJDIR    = $(BUILD)/obj
+OUT       = $(BUILD)/LinWarrior
+PROG      = LinWarrior
+
+# every source upstream's Makefile builds (all of source/)
+GAME      := $(shell cd $(LW)/source 2>/dev/null && find . -name '*.cpp' | sed 's|^\./||; s|\.cpp$$||' | sort)
+OBJS      = $(addprefix $(OBJDIR)/lw/,$(addsuffix .o,$(GAME))) \
+            $(OBJDIR)/amiga/lw_al.o $(OBJDIR)/amiga/lw_al_core.o $(OBJDIR)/amiga/amiga_start.o \
+            $(OBJDIR)/expat/xmlparse.o $(OBJDIR)/expat/xmlrole.o $(OBJDIR)/expat/xmltok.o
+DOCS      = AMIGA_PORT.md amiga/Licences.txt amiga/Controls
+
+all: $(OUT)/$(PROG) package
+
+$(BUILD)/$(PROG).debug: $(OBJS)
+	@mkdir -p $(BUILD)
+	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
+$(OUT)/$(PROG): $(BUILD)/$(PROG).debug
+	@mkdir -p $(OUT)
+	$(STRIP) -o $@ $<
+
+# the game's data, without the Blender sources of its models (the game
+# reads the .md5mesh files made from them; the .blend files are upstream)
+package: $(OUT)/$(PROG) $(DOCS)
+	rm -rf $(OUT)/data
+	cp -R $(LW)/data $(OUT)/data
+	find $(OUT)/data -name '*.blend' -exec rm -f {} +
+	cp amiga/Controls $(OUT)/Controls
+	cp AMIGA_PORT.md $(OUT)/ReadMe
+	cp $(LW)/LICENSE $(OUT)/LICENSE-Apache-2.0.txt
+	cp $(LW)/NOTICE $(OUT)/NOTICE.txt
+	cp $(LW)/doc/README $(OUT)/README-LinWarrior.txt
+	cp $(EXPAT)/COPYING $(OUT)/LICENSE-Expat.txt
+	cp amiga/Licences.txt $(OUT)/Licences.txt
+	cp amiga/icons/LinWarrior.info amiga/icons/ReadMe.info $(OUT)/
+	for f in LICENSE-Apache-2.0.txt NOTICE.txt README-LinWarrior.txt LICENSE-Expat.txt Licences.txt Controls; do \
+	    cp amiga/icons/ReadMe.info $(OUT)/$$f.info; done
+	cp amiga/icons/Data.info $(OUT)/data.info
+	cp amiga/icons/LinWarrior-drawer.info $(BUILD)/LinWarrior.info
+	cp amiga/Install-LinWarrior amiga/Install-LinWarrior.info $(BUILD)/
+
+$(OBJDIR)/lw/%.o: $(LW)/source/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJDIR)/amiga/%.o: amiga/%.c amiga/lw_al_core.h
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR)/expat/%.o: $(EXPAT)/lib/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(XFLAGS) -c -o $@ $<
+
+clean:
+	rm -rf $(BUILD)
+
+.PHONY: all package clean

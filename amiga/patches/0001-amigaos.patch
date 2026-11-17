@@ -1,0 +1,141 @@
+diff --git a/source/de/hackcraft/Main.cpp b/source/de/hackcraft/Main.cpp
+index c168363..64e1316 100644
+--- a/source/de/hackcraft/Main.cpp
++++ b/source/de/hackcraft/Main.cpp
+@@ -112,6 +112,20 @@ int main(int argc, char **args) {
+     try {
+         atexit(cleanup);
+ 
++#ifdef __amigaos__
++        // Started from its icon (argc 0), or with only options: the game.
++        static char* amiga_args[66];
++        if (argc < 2 || args[1][0] == '-') {
++            int n = argc < 1 ? 1 : (argc > 64 ? 64 : argc);
++            amiga_args[0] = (argc >= 1) ? args[0] : (char*) "LinWarrior";
++            amiga_args[1] = (char*) "game";
++            for (int k = 1; k < n; k++) amiga_args[k + 1] = args[k];
++            argc = n + 1;
++            amiga_args[argc] = NULL;
++            args = amiga_args;
++        }
++#endif
++
+         std::string subprogram = (argc >= 2) ? std::string(args[1]) : std::string("");
+ 
+         if (subprogram == "game") {
+diff --git a/source/de/hackcraft/game/GameConfig.h b/source/de/hackcraft/game/GameConfig.h
+index b4a0829..ef9f561 100644
+--- a/source/de/hackcraft/game/GameConfig.h
++++ b/source/de/hackcraft/game/GameConfig.h
+@@ -15,8 +15,13 @@ struct GameConfig;
+ 
+ #define DEFAULT_FULLSCREEN true
+ #define DEFAULT_FPS 29
++#ifdef __amigaos__
++#define DEFAULT_XRES 640
++#define DEFAULT_YRES 480
++#else
+ #define DEFAULT_XRES 800
+ #define DEFAULT_YRES 600
++#endif
+ #define DEFAULT_BPP 16
+ #define DEFAULT_FOV 65
+ 
+diff --git a/source/de/hackcraft/game/GameMain.cpp b/source/de/hackcraft/game/GameMain.cpp
+index b058284..8cd64a3 100644
+--- a/source/de/hackcraft/game/GameMain.cpp
++++ b/source/de/hackcraft/game/GameMain.cpp
+@@ -897,9 +897,9 @@ int GameMain::init(int argc, char** args) {
+     SDL_Surface* screen = NULL;
+     
+     if (config->fullscreen) {
+-        screen = SDL_SetVideoMode(config->width, config->height, 0, SDL_OPENGLBLIT | SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
++        screen = SDL_SetVideoMode(config->width, config->height, 0, SDL_OPENGL | SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
+     } else {
+-        screen = SDL_SetVideoMode(config->width, config->height, 0, SDL_OPENGLBLIT | SDL_HWSURFACE | SDL_DOUBLEBUF);
++        screen = SDL_SetVideoMode(config->width, config->height, 0, SDL_OPENGL | SDL_HWSURFACE | SDL_DOUBLEBUF);
+     }
+     
+     if (!screen) {
+diff --git a/source/de/hackcraft/io/Filesystem.cpp b/source/de/hackcraft/io/Filesystem.cpp
+index 0ac26d6..6bd875c 100644
+--- a/source/de/hackcraft/io/Filesystem.cpp
++++ b/source/de/hackcraft/io/Filesystem.cpp
+@@ -18,6 +18,7 @@ Filesystem::Filesystem() {
+     prefixes.push_back("ext");
+     prefixes.push_back("data");
+     
++#ifndef __amigaos__
+     // For common *nix installation game data directories.
+     prefixes.push_back("/usr/share/games/linwarrior/mod");
+     prefixes.push_back("/usr/share/games/linwarrior/ext");
+@@ -25,6 +26,7 @@ Filesystem::Filesystem() {
+     
+     // For absolute file references - sensible for development only.
+     prefixes.push_back("");
++#endif
+ }
+ 
+ 
+diff --git a/source/de/hackcraft/io/Texfile.cpp b/source/de/hackcraft/io/Texfile.cpp
+index adfa837..ccd9ca4 100644
+--- a/source/de/hackcraft/io/Texfile.cpp
++++ b/source/de/hackcraft/io/Texfile.cpp
+@@ -72,13 +72,9 @@ unsigned char* Texfile::loadTGA(const char *fname, int *w, int* h, int* bpp) {
+ 
+     for (int j = 0; j < tgahead.idlength; j++) fgetc(file);
+ 
+-#ifdef __BIG_ENDIAN__
+-    *w = (tgahead.width[0] << 8L)+(tgahead.width[1]);
+-    *h = (tgahead.height[0] << 8L)+(tgahead.height[1]);
+-#else
++    // TGA is little-endian on every machine: byte by byte, no #ifdef.
+     *w = (tgahead.width[1] << 8L)+(tgahead.width[0]);
+     *h = (tgahead.height[1] << 8L)+(tgahead.height[0]);
+-#endif
+     *bpp = tgahead.depth >> 3;
+ 
+     unsigned long size = (*w) * (*h) * (*bpp);
+@@ -141,17 +137,11 @@ int Texfile::saveTGA(const char *fname, int w, int h, int bpp, unsigned char* im
+     tgahead.yorigin[0] = 0;
+     tgahead.yorigin[1] = 0;
+ 
+-#ifdef __BIG_ENDIAN__
+-    tgahead.width[0] = (w & 0xFF00) >> 8;
+-    tgahead.width[1] = (w & 0x00FF);
+-    tgahead.height[0] = (h & 0xFF00) >> 8;
+-    tgahead.height[1] = (h & 0x00FF);
+-#else
++    // TGA is little-endian on every machine: byte by byte, no #ifdef.
+     tgahead.width[1] = (w & 0xFF00) >> 8;
+     tgahead.width[0] = (w & 0x00FF);
+     tgahead.height[1] = (h & 0xFF00) >> 8;
+     tgahead.height[0] = (h & 0x00FF);
+-#endif
+ 
+     size_t r = fwrite(&tgahead, sizeof (tgahead), 1, file);
+     if (r != 1) {
+diff --git a/source/de/hackcraft/log/Appender.cpp b/source/de/hackcraft/log/Appender.cpp
+index 8dd11b7..09f73dc 100644
+--- a/source/de/hackcraft/log/Appender.cpp
++++ b/source/de/hackcraft/log/Appender.cpp
+@@ -3,6 +3,7 @@
+ #include "de/hackcraft/log/Logger.h"
+ 
+ #include <iostream>
++#include <ctime>
+ 
+ Appender::Appender() {
+     maxLevel = 2;
+diff --git a/source/de/hackcraft/psi3d/macros.h b/source/de/hackcraft/psi3d/macros.h
+index 213b20d..7cdb86f 100644
+--- a/source/de/hackcraft/psi3d/macros.h
++++ b/source/de/hackcraft/psi3d/macros.h
+@@ -16,6 +16,7 @@
+ // gcc supplies a NAN which is float but that may not be available everywhere.
+ // Division by zero may produce segfaults on non x86 architectures.
+ #include <math.h>
++#include <time.h>
+ #ifdef NAN
+ #define float_NAN  ((float)NAN)
+ #else
